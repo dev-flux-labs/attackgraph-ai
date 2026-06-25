@@ -1,0 +1,21 @@
+Phishing Campaign Analysis and Response
+
+Phishing remains the leading initial access vector in enterprise breaches. Modern campaigns have evolved well beyond simple credential-harvesting pages to include multi-stage payloads, adversary-in-the-middle (AiTM) frameworks, and highly targeted spear-phishing.
+
+Adversary-in-the-Middle (AiTM) Phishing: Tools like Evilginx2, Modlishka, and Muraena act as reverse proxies between the victim and legitimate login portals. The attacker relays the authentication in real time and captures session cookies, bypassing MFA. These attacks target Microsoft 365, Google Workspace, and Okta. Detection: anomalous sign-in locations, impossible travel alerts, session cookie reuse from new IPs.
+
+Spear-Phishing with Malicious Attachments: Targeted emails referencing recent business context (invoice approvals, HR documents) deliver weaponized Office files. ISO/IMG container files are used to bypass Mark-of-the-Web (MOTW) protections. HTML smuggling encodes payloads as JavaScript blobs decoded client-side to evade email gateways.
+
+Business Email Compromise (BEC): Attackers compromise or spoof executive email accounts to redirect wire transfers or harvest employee credentials. BEC causes the highest financial losses of any cybercrime category. Indicators include lookalike domains (acme-corp.com vs acmecorp.com), display name spoofing, and reply-to header manipulation.
+
+Credential Harvesting Pages: Phishing kits clone legitimate login pages and exfiltrate credentials to attacker-controlled endpoints. Common targets: Microsoft 365, VPN portals, banking portals. Detection: users reporting unexpected password reset prompts, impossible travel in authentication logs, login from Tor/VPN exit nodes.
+
+Incident Response Steps for Phishing:
+1. Identify the phishing email sender, subject, and all recipients using email gateway logs.
+2. Search for and quarantine all copies of the email across the environment.
+3. Determine if any recipients clicked links or opened attachments (proxy/EDR logs).
+4. Reset credentials and terminate active sessions for any affected accounts.
+5. Search for persistence mechanisms if a payload was executed.
+6. Block malicious domains/IPs at perimeter and DNS level.
+
+MITRE ATT&CK: T1566.001 (Spear-Phishing Attachment), T1566.002 (Spear-Phishing Link), T1111 (Multi-Factor Authentication Interception), T1539 (Steal Web Session Cookie).

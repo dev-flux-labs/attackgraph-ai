@@ -1,0 +1,19 @@
+Ransomware Tactics, Techniques, and Procedures (TTPs)
+
+Modern ransomware operations follow a structured playbook that mirrors advanced persistent threat (APT) activity. Understanding the full kill chain is essential for effective incident response.
+
+Initial Access: Ransomware groups primarily gain entry via phishing emails with malicious attachments (macro-enabled Office documents, ISO files), exploitation of public-facing applications (VPN appliances, Exchange servers — e.g., ProxyShell CVE-2021-34473), or purchasing access from initial access brokers on dark web forums.
+
+Execution and Persistence: After gaining a foothold, threat actors deploy a beacon or implant (Cobalt Strike, Brute Ratel, Sliver) to maintain persistent access. Common persistence mechanisms include scheduled tasks, registry run keys (HKCU\Software\Microsoft\Windows\CurrentVersion\Run), and WMI event subscriptions.
+
+Privilege Escalation: Attackers enumerate local privilege escalation opportunities using tools like WinPEAS or SharpUp. Common exploits include PrintNightmare (CVE-2021-1675), Zerologon (CVE-2020-1472), and abuse of misconfigured services running as SYSTEM.
+
+Discovery and Reconnaissance: Before encryption, threat actors spend days or weeks mapping the environment. Tools observed include: ADFind, BloodHound/SharpHound (Active Directory enumeration), Advanced Port Scanner, and native commands (net user, net group, ipconfig, whoami /all).
+
+Exfiltration (Double Extortion): Data is exfiltrated prior to encryption to a threat actor-controlled server using tools such as Rclone, MEGASync, or custom FTP scripts. This enables double extortion — threatening to publish data if ransom is not paid.
+
+Impact — Encryption: The ransomware binary is distributed via Group Policy, PsExec, or WMIC. It deletes Volume Shadow Copies (vssadmin delete shadows /all /quiet), disables backup services, and encrypts files using asymmetric encryption (RSA + AES hybrid).
+
+Key IOCs: Cobalt Strike beacon traffic (malleable C2 profiles on common ports 443/80), large outbound data transfers, VSS deletion events (Event ID 8222), and mass file rename events with new extensions (.locked, .enc, .ALPHV).
+
+MITRE ATT&CK: T1566 (Phishing), T1059 (Command and Scripting Interpreter), T1486 (Data Encrypted for Impact), T1490 (Inhibit System Recovery), T1041 (Exfiltration Over C2 Channel).

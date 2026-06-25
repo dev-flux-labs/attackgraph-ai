@@ -1,0 +1,13 @@
+Lateral Movement Techniques in Enterprise Environments
+
+Lateral movement refers to the techniques attackers use to progressively move through a network after gaining initial access, seeking to reach high-value targets such as domain controllers, financial systems, or sensitive data stores.
+
+Pass-the-Hash (PtH) is one of the most common lateral movement techniques. Attackers capture NTLM password hashes from compromised hosts using tools like Mimikatz and reuse them to authenticate to other systems without knowing the plaintext password. Detection relies on monitoring for Event ID 4624 (logon type 3) with mismatched source IPs.
+
+Pass-the-Ticket (PtT) involves stealing Kerberos tickets from memory (typically TGTs or service tickets) and injecting them into a new session. The Kerberoasting variant extracts service account ticket hashes offline for cracking. Defenders should look for Event ID 4768 anomalies and accounts requesting unusual service tickets.
+
+Remote Service Exploitation allows attackers to move laterally by exploiting services such as SMB (EternalBlue/MS17-010), RDP, or WinRM. Attackers may also use legitimate admin tools like PsExec, WMI, or PowerShell remoting to execute commands on remote hosts — living-off-the-land (LotL) to avoid detection.
+
+Indicators of Compromise (IOCs) for lateral movement include: unusual SMB traffic between workstations, scheduled task creation on remote hosts, use of ADMIN$ or IPC$ shares, and new service installations on previously clean hosts.
+
+MITRE ATT&CK techniques: T1550 (Use Alternate Authentication Material), T1021 (Remote Services), T1047 (Windows Management Instrumentation), T1053 (Scheduled Task/Job).
