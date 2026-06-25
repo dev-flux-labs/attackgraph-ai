@@ -38,6 +38,37 @@ def _get_collection():
         )
     return _collection
 
+def ingest_chunks(
+    texts: list[str],
+    source: str,
+    file_type: str,
+    doc_id: str,
+) -> int:
+    """
+    Embed and upsert a list of text chunks into the ChromaDB collection.
+    Reuses the module-level cached model and collection so a second copy of
+    the embedding model is never loaded during an active Streamlit session.
+    Returns the number of chunks stored.
+    """
+    if not texts:
+        return 0
+
+    # Ensure the DB directory exists before trying to open it
+    os.makedirs(CHROMA_DIR, exist_ok=True)
+
+    model = _get_model()
+    collection = _get_collection()
+    embeddings = model.encode(texts, show_progress_bar=False).tolist()
+
+    ids = [f"{doc_id}_chunk{i}" for i in range(len(texts))]
+    metadatas = [
+        {"source": source, "file_type": file_type, "chunk_index": i}
+        for i in range(len(texts))
+    ]
+    collection.upsert(ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas)
+    return len(texts)
+
+
 def collection_size() -> int:
     """Return how many chunks are stored, or 0 if the DB doesn't exist yet."""
     sqlite_path = os.path.join(CHROMA_DIR, "chroma.sqlite3")

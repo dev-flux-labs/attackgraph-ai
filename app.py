@@ -8,10 +8,12 @@ from datetime import datetime
 
 import streamlit as st
 
+from file_parser import parse_file
 from ioc_extract import extract as extract_iocs
+from ingest import chunk_text
 from llm import generate_report
 from mitre import techniques_from_texts
-from rag import collection_size, retrieve
+from rag import collection_size, ingest_chunks, retrieve
 from report import build_report
 from export_md import to_markdown, filename as md_filename
 from export_pdf import to_pdf, filename as pdf_filename
@@ -48,6 +50,27 @@ def _severity_badge(severity: str) -> str:
     )
 
 
+def _ingest_uploads(uploaded_files) -> None:
+    """Parse, chunk, embed, and store each uploaded file. Shows per-file feedback."""
+    import re as _re
+    for uf in uploaded_files:
+        try:
+            raw = parse_file(uf.name, uf.read())
+            if not raw.strip():
+                st.warning(f"{uf.name}: file is empty — skipped.")
+                continue
+            chunks = chunk_text(raw)
+            # Sanitise filename for use as a ChromaDB document ID
+            doc_id = _re.sub(r"[^\w.-]", "_", uf.name)
+            ext = uf.name.rsplit(".", 1)[-1].lower() if "." in uf.name else "unknown"
+            n = ingest_chunks(chunks, source=uf.name, file_type=ext, doc_id=doc_id)
+            st.success(f"{uf.name}: {n} chunk(s) ingested.")
+        except ValueError as e:
+            st.error(f"{uf.name}: {e}")
+        except Exception as e:
+            st.error(f"{uf.name}: unexpected error — {e}")
+
+
 # --- Sidebar ---
 with st.sidebar:
     st.title("🔍 AttackGraph AI")
@@ -60,6 +83,21 @@ with st.sidebar:
     else:
         st.metric("Knowledge Base", f"{kb_size} chunks",
                   help="Threat intel chunks indexed in ChromaDB")
+
+    st.divider()
+    st.subheader("Upload Files")
+    uploaded_files = st.file_uploader(
+        "Add to knowledge base",
+        type=["txt", "log", "csv", "json"],
+        accept_multiple_files=True,
+        label_visibility="collapsed",
+        help="Files are chunked, embedded, and stored in ChromaDB.",
+    )
+    if uploaded_files:
+        if st.button("Ingest uploaded files", use_container_width=True, type="secondary"):
+            with st.spinner("Ingesting…"):
+                _ingest_uploads(uploaded_files)
+            st.rerun()
 
     st.divider()
     st.subheader("Settings")
