@@ -1,0 +1,50 @@
+[Template: Suspicious PowerShell Investigation Report]
+
+INCIDENT TYPE: Suspicious PowerShell / Script-Based Attack / Living-Off-the-Land
+
+FOCUS AREAS:
+- Decode and analyse the full PowerShell command line (base64-encoded payloads are common)
+- Identify the parent process: was PowerShell spawned by Office, browser, or a legitimate admin tool?
+- Determine whether execution policy was bypassed (-ExecutionPolicy Bypass, -EncodedCommand)
+- Check for AMSI bypass techniques (memory patching, obfuscation, reflection)
+- Trace any secondary payload downloads, staging directories, or injected processes
+- Establish whether this was an isolated execution or part of a broader attack chain
+- Look for PowerShell script block logging (Event ID 4104) and module logging (4103) artefacts
+
+KEY IOC TYPES:
+- Full decoded command line
+- Parent process name and PID chain (grandparent matters: winword.exe → cmd.exe → powershell.exe)
+- Any URLs contacted for payload download (Invoke-WebRequest, IEX, DownloadString)
+- Staging directory paths (Temp, AppData, ProgramData are common)
+- Process names injected into (if process injection used)
+- Scheduled task or registry run key created for persistence
+
+MITRE TECHNIQUES TO CONSIDER:
+- T1059.001 PowerShell — core technique
+- T1027 Obfuscated Files or Information — base64 encoding, string concatenation, char casting
+- T1140 Deobfuscate/Decode Files — decode step within the script
+- T1055 Process Injection — injecting shellcode from PowerShell into legitimate processes
+- T1053.005 Scheduled Task — persistence via schtasks.exe from within PowerShell
+- T1547.001 Registry Run Keys — registry-based persistence
+- T1218 System Binary Proxy Execution — using LOLBins to launch further payloads
+- T1562.001 Impair Defenses — disabling logging, AMSI bypass
+
+REPORT GUIDANCE:
+The most important artefact is the decoded command. Prioritise full deobfuscation before
+drawing conclusions. Many PowerShell attacks use multiple layers: base64 → gzip → reflection
+→ shellcode. Document each layer.
+
+Parent process chain is the second most important artefact. Legitimate PowerShell admin scripts
+are typically launched by scheduled tasks, SCCM, or directly from an admin session. PowerShell
+spawned by Office applications, browsers, or document viewers is always suspicious.
+
+Check for AMSI and ETW bypass patterns: `[Ref].Assembly.GetType`, `AmsiContext`, `EtwEventWrite`
+patching in memory — these indicate a sophisticated actor who anticipated endpoint detection.
+
+REQUIRED SECTIONS:
+- Decoded command chain (all obfuscation layers unwrapped)
+- Parent process chain and spawning context
+- Network activity (download URLs, C2 contacted)
+- Payload dropped or injected (if any)
+- Persistence mechanisms established
+- AMSI/logging bypass assessment

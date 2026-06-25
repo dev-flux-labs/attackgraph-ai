@@ -1,0 +1,50 @@
+[Template: Lateral Movement Investigation Report]
+
+INCIDENT TYPE: Lateral Movement / Credential Abuse / Internal Reconnaissance
+
+FOCUS AREAS:
+- Establish the origin host (patient zero) and the first pivot point
+- Map the full movement graph: which hosts were reached, in what order, via what mechanism
+- Identify credential sources: were credentials stolen on-host (Mimikatz, LSASS dump) or sourced externally (pass-the-hash, Kerberoasting, Golden Ticket)
+- Determine the attacker's objective: data access, persistence, ransomware staging, espionage
+- Document every account used during movement, including service accounts and admin accounts
+- Look for living-off-the-land (LotL) techniques that abuse legitimate tools (PsExec, WMI, RDP, WinRM)
+
+KEY IOC TYPES:
+- Source and destination host pairs for each lateral move
+- Accounts used (especially privileged accounts activated outside business hours)
+- Lateral movement tool hashes (PsExec, Impacket, CrackMapExec, Mimikatz)
+- Unusual SMB authentication events (Event ID 4624 logon type 3)
+- Scheduled tasks or services created on remote hosts
+- Named pipes and WMI subscriptions used for C2
+
+MITRE TECHNIQUES TO CONSIDER:
+- T1550.002 Pass the Hash — NTLM hash reuse without cracking
+- T1550.003 Pass the Ticket — Kerberos ticket theft and reuse
+- T1021.001 Remote Desktop Protocol — RDP lateral movement
+- T1021.002 SMB/Windows Admin Shares — PsExec, remote file copy
+- T1021.006 Windows Remote Management — WinRM / PowerShell Remoting
+- T1047 Windows Management Instrumentation — WMI remote execution
+- T1482 Domain Trust Discovery — mapping AD trust relationships
+- T1087 Account Discovery — net user, net group enumeration
+- T1018 Remote System Discovery — network scanning for reachable hosts
+
+REPORT GUIDANCE:
+Lateral movement investigations live and die on log completeness. Before concluding scope,
+verify that authentication logs (Windows Event 4624, 4625, 4648) and network flow data are
+available for all potentially-reached hosts. Gaps in logging mean the true scope may be larger.
+
+Work backwards from the most privileged account observed. If a domain admin account was
+used, assume all hosts in the domain should be treated as potentially compromised until proven
+otherwise. A single domain admin session is a domain-wide incident.
+
+Document the movement path as a sequence (Host A → Host B → Host C) rather than a flat list.
+The sequence reveals the attacker's reconnaissance quality and target priority.
+
+REQUIRED SECTIONS:
+- Origin host and initial compromise vector
+- Movement path (ordered sequence of host-to-host pivots)
+- Credential sources and privilege escalation steps
+- Accounts compromised (standard, privileged, service)
+- Objective assessment (what was the attacker trying to reach)
+- Scope of access (data stores, systems, domains reachable from furthest pivot)

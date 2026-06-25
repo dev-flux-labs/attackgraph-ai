@@ -1,0 +1,47 @@
+[Template: Phishing Investigation Report]
+
+INCIDENT TYPE: Phishing / Business Email Compromise (BEC) / Spear-Phishing
+
+FOCUS AREAS:
+- Identify the initial lure: email subject, sender address, spoofed domain
+- Determine whether the user clicked a link, opened an attachment, or submitted credentials
+- Check for MFA bypass techniques: adversary-in-the-middle (AiTM) proxies, SIM swapping, push fatigue
+- Trace the full email delivery path (mail headers, relay hops, SPF/DKIM/DMARC results)
+- Establish whether credentials were harvested and what systems were accessed with them
+- Identify any downstream actions: mailbox rules, OAuth consent grants, forwarding rules set by attacker
+
+KEY IOC TYPES:
+- Sender email address and display name (check for look-alike domains)
+- Phishing URL and landing page domain
+- Attachment filename, hash (MD5/SHA256), and file type
+- Harvested credential target (O365, VPN, HR portal, etc.)
+- Attacker source IPs used after credential theft
+- Any OAuth app granted access or inbox forwarding addresses
+
+MITRE TECHNIQUES TO CONSIDER:
+- T1566.001 Spear-Phishing Attachment — weaponised document delivered via email
+- T1566.002 Spear-Phishing Link — link to credential harvesting page
+- T1078 Valid Accounts — attacker logs in with stolen credentials
+- T1539 Steal Web Session Cookie — AiTM proxy captures session tokens
+- T1111 MFA Interception — real-time phishing proxies bypass MFA
+- T1114 Email Collection — attacker reads victim's mailbox post-compromise
+- T1137 Office Application Startup — malicious macro persistence
+
+REPORT GUIDANCE:
+Prioritise timeline reconstruction from email delivery to first attacker login.
+Establish whether this was opportunistic (mass phishing) or targeted (spear-phishing / BEC).
+If credentials were stolen, determine the blast radius: what applications, data stores, and
+downstream users could the attacker access with the compromised account?
+
+Check for post-compromise persistence: inbox forwarding rules, OAuth consent grants, and
+new mail flow rules are the most common. These survive password resets.
+
+For BEC specifically: verify whether any financial transactions, wire transfers, or vendor
+payment changes were requested or completed during the attacker's access window.
+
+REQUIRED SECTIONS:
+- Email delivery analysis (headers, SPF/DKIM/DMARC, relay path)
+- Credential exposure scope (what the attacker could access)
+- Post-compromise persistence mechanisms found
+- Financial or data exposure assessment
+- User awareness context (first offence, repeat target, privileged user)

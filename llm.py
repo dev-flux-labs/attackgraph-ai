@@ -26,31 +26,34 @@ Numbered list of immediate investigation and containment actions.
 Be specific. Do not pad the response with generic advice."""
 
 
-def build_prompt(query: str, chunks: list[dict]) -> str:
-    """Combine the retrieved chunks into a single context block for the LLM."""
+def build_prompt(query: str, chunks: list[dict], template: str | None = None) -> str:
+    """Combine the retrieved chunks into a single context block for the LLM.
+    If a template is provided it is inserted as FORMAT GUIDANCE before the
+    threat-intel context so the LLM tailors the report to the incident type.
+    """
     context_parts = []
     for i, chunk in enumerate(chunks, 1):
         context_parts.append(f"[Source {i}: {chunk['source']}]\n{chunk['text']}")
 
     context = "\n\n---\n\n".join(context_parts)
 
-    return f"""INCIDENT DESCRIPTION:
-{query}
+    prompt = f"INCIDENT DESCRIPTION:\n{query}\n\n"
 
-RELEVANT THREAT INTELLIGENCE CONTEXT:
-{context}
+    if template:
+        prompt += f"REPORT FORMAT GUIDANCE:\n{template}\n\nFollow the guidance above when structuring your response.\n\n"
 
-Based on the above, produce the investigation report."""
+    prompt += f"RELEVANT THREAT INTELLIGENCE CONTEXT:\n{context}\n\nBased on the above, produce the investigation report."
+    return prompt
 
 
-def generate_report(query: str, chunks: list[dict], model: str = "llama3.2"):
+def generate_report(query: str, chunks: list[dict], model: str = "llama3.2", template: str | None = None):
     """
     Stream an investigation report from Ollama.
     Yields text chunks as they arrive so the UI can display them incrementally.
     Raises ConnectionError if Ollama is not running.
     """
     import ollama
-    prompt = build_prompt(query, chunks)
+    prompt = build_prompt(query, chunks, template=template)
 
     try:
         stream = ollama.chat(

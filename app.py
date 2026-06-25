@@ -15,6 +15,7 @@ from llm import generate_report
 from mitre import techniques_from_texts
 from rag import collection_size, ingest_chunks, retrieve
 from report import build_report
+from template_rag import ensure_templates_ingested, get_relevant_template
 from export_md import to_markdown, filename as md_filename
 from export_pdf import to_pdf, filename as pdf_filename
 
@@ -24,6 +25,14 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# Load report templates into ChromaDB once per Streamlit process.
+# st.cache_resource ensures this runs only on the first load, not every rerun.
+@st.cache_resource
+def _init_templates():
+    ensure_templates_ingested()
+
+_init_templates()
 
 # --- Severity colours (used in badge and header) ---
 SEVERITY_COLORS = {
@@ -368,8 +377,15 @@ if "results" in st.session_state and st.session_state["results"]:
 
         if st.button("Generate Report", type="secondary"):
             try:
+                template_result = get_relevant_template(last_query)
+                if template_result:
+                    template_name, template_text = template_result
+                    st.caption(f"Using template: **{template_name}**")
+                else:
+                    template_text = None
+
                 _raw = st.write_stream(
-                    generate_report(last_query, results, model=saved_model)
+                    generate_report(last_query, results, model=saved_model, template=template_text)
                 )
                 full_report_text = _raw if isinstance(_raw, str) else ""
                 st.session_state["report"] = full_report_text

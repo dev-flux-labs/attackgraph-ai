@@ -1,0 +1,53 @@
+[Template: Ransomware Investigation Report]
+
+INCIDENT TYPE: Ransomware / Data Encryption Attack / Double-Extortion
+
+FOCUS AREAS:
+- Identify the ransomware family and variant (ransom note, encrypted extension, known TTPs)
+- Reconstruct the full attack chain from initial access through to encryption
+- Determine if data exfiltration occurred BEFORE encryption (double-extortion model)
+- Document all shadow copy and backup deletion activity
+- Map lateral movement path from patient zero to domain-wide encryption
+- Assess backup integrity before recommending recovery options
+- Identify the dwell time (initial access to encryption trigger)
+
+KEY IOC TYPES:
+- Ransom note filename and content hash
+- Encrypted file extension (e.g., .locked, .ryuk, .BlackCat)
+- Dropper or loader hashes (MD5/SHA256)
+- C2 domains and IPs used for beaconing and exfiltration
+- Tools staged by attacker (Cobalt Strike, MegaSync, Rclone, WinSCP, AnyDesk)
+- Accounts used for lateral movement (especially domain admin)
+- Systems encrypted vs systems with backups intact
+
+MITRE TECHNIQUES TO CONSIDER:
+- T1486 Data Encrypted for Impact — core ransomware action
+- T1490 Inhibit System Recovery — VSS/shadow copy deletion (vssadmin, wmic)
+- T1489 Service Stop — disabling AV, backup agents, database services before encryption
+- T1567 Exfiltration Over Web Service — cloud storage used for data theft (Mega, Rclone)
+- T1021.002 SMB/Windows Admin Shares — lateral movement via ADMIN$/C$ shares
+- T1003 OS Credential Dumping — Mimikatz or similar to escalate privileges
+- T1059.001 PowerShell — frequently used for staged payload delivery
+- T1562.001 Impair Defenses — disabling Windows Defender, EDR agents
+
+REPORT GUIDANCE:
+Ransomware investigations require two parallel tracks: containment and evidence preservation.
+Do not recommend wiping systems or restoring from backup until the full attack chain is mapped —
+the initial access vector must be closed or the environment will be re-compromised within hours.
+
+Always check for data exfiltration before encryption. Look for large outbound transfers to cloud
+storage services (Mega, Dropbox, OneDrive personal accounts) in the 24–72 hours before
+encryption. The double-extortion leak threat is only credible if exfiltration actually occurred.
+
+Dwell time is critical context. Ransomware groups often reside in the network for days to weeks
+before detonating. The actual encryption event is the last step — the investigation must work
+backwards from it.
+
+REQUIRED SECTIONS:
+- Ransomware family identification and confidence level
+- Patient zero (initial compromise host and vector)
+- Dwell time and attacker activity timeline
+- Data exfiltration assessment (double-extortion check)
+- Shadow copy / backup deletion evidence
+- Lateral movement path and scope of compromise
+- Decryptor availability and recovery options
