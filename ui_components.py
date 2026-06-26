@@ -97,22 +97,34 @@ def recent_cases_placeholder() -> str:
 
 # ── KPI cards ──────────────────────────────────────────────────────────────
 
-def _nav_attrs(tab: str) -> str:
-    """Return onclick + style attrs that jump to a tab by partial text match."""
+def _nav_attrs(tab: str, scroll_to: str = "") -> str:
+    """Return onclick + style that switches tab and optionally scrolls to an anchor."""
     if not tab:
-        return ""
+        return 'class="kpi-card"'
+    if scroll_to:
+        scroll_js = (
+            f"setTimeout(function(){{"
+            f"var el=document.getElementById('{scroll_to}');"
+            f"if(el)el.scrollIntoView({{behavior:'smooth',block:'start'}});"
+            f"}},320);"
+        )
+    else:
+        scroll_js = ""
     js = (
         f"var ts=document.querySelectorAll('[data-baseweb=\"tab\"]');"
-        f"for(var i=0;i<ts.length;i++){{if(ts[i].textContent.includes('{tab}')){{ts[i].click();break;}}}}"
+        f"for(var i=0;i<ts.length;i++){{"
+        f"if(ts[i].textContent.includes('{tab}'))"
+        f"{{ts[i].click();{scroll_js}break;}}}}"
     )
     return f'onclick="{js}" style="cursor:pointer;" class="kpi-card kpi-card--nav"'
 
 
-def kpi_card(label: str, value: str, color_cls: str = "", sub: str = "", icon: str = "", nav_tab: str = "") -> str:
+def kpi_card(label: str, value: str, color_cls: str = "", sub: str = "", icon: str = "",
+             nav_tab: str = "", scroll_to: str = "") -> str:
     val_cls = f"kpi-val {color_cls}" if color_cls else "kpi-val"
     icon_part = f'<span>{icon}</span>' if icon else ""
     sub_part = f'<div class="kpi-sub">{sub}</div>' if sub else ""
-    attrs = _nav_attrs(nav_tab) if nav_tab else 'class="kpi-card"'
+    attrs = _nav_attrs(nav_tab, scroll_to) if nav_tab else 'class="kpi-card"'
     return f"""
 <div {attrs}>
   <div class="kpi-label">{icon_part}{label}</div>
@@ -121,14 +133,14 @@ def kpi_card(label: str, value: str, color_cls: str = "", sub: str = "", icon: s
 </div>"""
 
 
-def confidence_card(confidence: int, nav_tab: str = "") -> str:
+def confidence_card(confidence: int, nav_tab: str = "", scroll_to: str = "") -> str:
     color = "kpi-green" if confidence >= 70 else ("kpi-orange" if confidence >= 40 else "kpi-critical")
     bar = (
         f'<div class="conf-bar-track">'
         f'<div class="conf-bar-fill" style="width:{confidence}%"></div>'
         f'</div>'
     )
-    attrs = _nav_attrs(nav_tab) if nav_tab else 'class="kpi-card"'
+    attrs = _nav_attrs(nav_tab, scroll_to) if nav_tab else 'class="kpi-card"'
     return f"""
 <div {attrs}>
   <div class="kpi-label">Confidence</div>
@@ -137,7 +149,7 @@ def confidence_card(confidence: int, nav_tab: str = "") -> str:
 </div>"""
 
 
-def risk_score_card(score: int, nav_tab: str = "") -> str:
+def risk_score_card(score: int, nav_tab: str = "", scroll_to: str = "") -> str:
     if score >= 80:
         color, label = "kpi-critical", "CRITICAL"
     elif score >= 60:
@@ -146,7 +158,7 @@ def risk_score_card(score: int, nav_tab: str = "") -> str:
         color, label = "kpi-orange", "MEDIUM"
     else:
         color, label = "kpi-low", "LOW"
-    attrs = _nav_attrs(nav_tab) if nav_tab else 'class="kpi-card"'
+    attrs = _nav_attrs(nav_tab, scroll_to) if nav_tab else 'class="kpi-card"'
     return f"""
 <div {attrs}>
   <div class="kpi-label">Risk Score</div>

@@ -314,11 +314,11 @@ with ws_col:
             + ui.kpi_card("Severity",   sev,               sev_cls,  icon="🚨")
             + ui.risk_score_card(risk)
             + ui.confidence_card(conf)
-            + ui.kpi_card("Evidence",   str(len(results)), "kpi-blue",   sub="chunks retrieved", icon="📋", nav_tab="Evidence")
-            + ui.kpi_card("IOCs Found", str(ioc_total),    "kpi-orange" if ioc_total else "kpi-low", icon="🔎", nav_tab="Evidence")
-            + ui.kpi_card("MITRE",      str(len(mitre_techniques)), "kpi-blue", sub="techniques", icon="🛡", nav_tab="MITRE")
-            + ui.kpi_card("Hosts",      str(len(iocs.get("IPs", []) + iocs.get("Domains", []))), icon="🖥", nav_tab="Evidence")
-            + ui.kpi_card("Timeline",   str(len([e for e in timeline if e.get("event")])), sub="events", icon="🕐", nav_tab="Timeline")
+            + ui.kpi_card("Evidence",   str(len(results)), "kpi-blue",   sub="chunks retrieved", icon="📋", nav_tab="Evidence",  scroll_to="sec-evidence")
+            + ui.kpi_card("IOCs Found", str(ioc_total),    "kpi-orange" if ioc_total else "kpi-low", icon="🔎", nav_tab="Evidence",  scroll_to="sec-iocs")
+            + ui.kpi_card("MITRE",      str(len(mitre_techniques)), "kpi-blue", sub="techniques", icon="🛡", nav_tab="MITRE",     scroll_to="sec-mitre")
+            + ui.kpi_card("Hosts",      str(len(iocs.get("IPs", []) + iocs.get("Domains", []))), icon="🖥", nav_tab="Evidence",  scroll_to="sec-iocs")
+            + ui.kpi_card("Timeline",   str(len([e for e in timeline if e.get("event")])), sub="events", icon="🕐", nav_tab="Timeline", scroll_to="sec-timeline")
             + '</div>'
         )
         st.markdown(kpi_html, unsafe_allow_html=True)
@@ -407,6 +407,7 @@ with ws_col:
     # ── TAB 2: EVIDENCE ───────────────────────────────────────────────────
     with tab_ev:
         # Evidence cards
+        st.markdown('<div id="sec-evidence"></div>', unsafe_allow_html=True)
         st.markdown(
             ui.section_header("📋", "Retrieved Evidence", len(results)),
             unsafe_allow_html=True,
@@ -417,6 +418,7 @@ with ws_col:
                 st.markdown(chunk["text"])
 
         # IOC Summary
+        st.markdown('<div id="sec-iocs"></div>', unsafe_allow_html=True)
         st.markdown("---")
         st.markdown(
             ui.section_header("🔎", "Extracted IOCs", ioc_total),
@@ -441,6 +443,7 @@ with ws_col:
 
     # ── TAB 3: MITRE ATT&CK ──────────────────────────────────────────────
     with tab_mitre:
+        st.markdown('<div id="sec-mitre"></div>', unsafe_allow_html=True)
         st.markdown(
             ui.section_header("🛡", "MITRE ATT&CK Techniques", len(mitre_techniques)),
             unsafe_allow_html=True,
@@ -479,6 +482,7 @@ with ws_col:
 
     # ── TAB 5: TIMELINE ───────────────────────────────────────────────────
     with tab_tl:
+        st.markdown('<div id="sec-timeline"></div>', unsafe_allow_html=True)
         st.markdown(
             ui.section_header("🕐", "Incident Timeline"),
             unsafe_allow_html=True,
