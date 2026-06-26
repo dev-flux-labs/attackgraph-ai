@@ -132,14 +132,15 @@ with st.sidebar:
         key="severity",
     )
     # If a Quick Scenario was clicked on the previous run, inject its text
-    # by clearing the widget key so value= takes effect as the new default.
+    # directly into session_state before the widget renders.
+    # (Streamlit 1.40+ treats value= as a controlled override on every rerun,
+    # so we must not pass value= at all for the normal case.)
     _pending = st.session_state.pop("_pending_scenario", None)
     if _pending is not None:
-        st.session_state.pop("query_input", None)
+        st.session_state["query_input"] = _pending
 
     query = st.text_area(
         "Incident Description",
-        value=_pending or "",
         height=110,
         placeholder="Paste IOCs, log snippets, or describe the incident…",
         key="query_input",
@@ -335,11 +336,19 @@ with ws_col:
                 else:
                     ttext = None
 
+                # Capture chunks manually — guarantees full_text is correct
+                # regardless of what st.write_stream() returns in this Streamlit version.
+                _chunks: list[str] = []
+
+                def _capturing_gen():
+                    for _c in generate_report(last_query, results, model=saved_model, template=ttext):
+                        _chunks.append(_c)
+                        yield _c
+
                 with st.spinner("Generating SOC investigation report…"):
-                    _raw = st.write_stream(
-                        generate_report(last_query, results, model=saved_model, template=ttext)
-                    )
-                full_text = _raw if isinstance(_raw, str) else ""
+                    st.write_stream(_capturing_gen())
+
+                full_text = "".join(_chunks)
                 st.session_state["report"] = full_text
 
                 context_text = " ".join(c["text"] for c in results)
@@ -369,8 +378,8 @@ with ws_col:
                 mem.save()
                 if new_edges:
                     st.caption(f"Memory graph updated: +{new_edges} relationship(s)")
-
-                st.rerun()
+                # No explicit st.rerun() — Streamlit auto-rerenders after the button
+                # handler completes, at which point lines below display from session state.
 
             except ConnectionError as e:
                 st.error(str(e))
