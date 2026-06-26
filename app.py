@@ -131,8 +131,15 @@ with st.sidebar:
         index=1,
         key="severity",
     )
+    # If a Quick Scenario was clicked on the previous run, inject its text
+    # by clearing the widget key so value= takes effect as the new default.
+    _pending = st.session_state.pop("_pending_scenario", None)
+    if _pending is not None:
+        st.session_state.pop("query_input", None)
+
     query = st.text_area(
         "Incident Description",
+        value=_pending or "",
         height=110,
         placeholder="Paste IOCs, log snippets, or describe the incident…",
         key="query_input",
@@ -172,9 +179,11 @@ with st.sidebar:
     ]
     for icon, label in examples:
         if st.button(f"{icon} {label}", use_container_width=True, key=f"ex_{label}"):
-            st.session_state["query_input"] = label
+            # Store in a pending key — can't set widget key after it's rendered
+            st.session_state["_pending_scenario"] = label
             for k in ("results", "report", "report_obj", "mitre_techniques", "iocs", "timeline"):
                 st.session_state.pop(k, None)
+            st.rerun()
 
     # ── Upload Evidence ──────────────────────────────────────────────────
     st.divider()
