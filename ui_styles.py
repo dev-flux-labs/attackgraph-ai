@@ -35,7 +35,7 @@ _CSS = """
     font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 .block-container {
-    padding: 0.5rem 2rem 3rem 2rem;
+    padding: 1.8rem 2rem 3rem 2rem;
     max-width: 100% !important;
 }
 
@@ -422,6 +422,11 @@ hr { border-color: #30363D !important; margin: 12px 0 !important; }
     border-color: #484F58;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+}
+.kpi-card--nav:hover {
+    border-color: #58A6FF;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(88,166,255,0.18);
 }
 .kpi-label {
     color: #8B949E;

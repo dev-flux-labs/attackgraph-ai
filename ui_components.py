@@ -97,34 +97,47 @@ def recent_cases_placeholder() -> str:
 
 # ── KPI cards ──────────────────────────────────────────────────────────────
 
-def kpi_card(label: str, value: str, color_cls: str = "", sub: str = "", icon: str = "") -> str:
+def _nav_attrs(tab: str) -> str:
+    """Return onclick + style attrs that jump to a tab by partial text match."""
+    if not tab:
+        return ""
+    js = (
+        f"var ts=document.querySelectorAll('[data-baseweb=\"tab\"]');"
+        f"for(var i=0;i<ts.length;i++){{if(ts[i].textContent.includes('{tab}')){{ts[i].click();break;}}}}"
+    )
+    return f'onclick="{js}" style="cursor:pointer;" class="kpi-card kpi-card--nav"'
+
+
+def kpi_card(label: str, value: str, color_cls: str = "", sub: str = "", icon: str = "", nav_tab: str = "") -> str:
     val_cls = f"kpi-val {color_cls}" if color_cls else "kpi-val"
     icon_part = f'<span>{icon}</span>' if icon else ""
     sub_part = f'<div class="kpi-sub">{sub}</div>' if sub else ""
+    attrs = _nav_attrs(nav_tab) if nav_tab else 'class="kpi-card"'
     return f"""
-<div class="kpi-card">
+<div {attrs}>
   <div class="kpi-label">{icon_part}{label}</div>
   <div class="{val_cls}">{value}</div>
   {sub_part}
 </div>"""
 
 
-def confidence_card(confidence: int) -> str:
+def confidence_card(confidence: int, nav_tab: str = "") -> str:
     color = "kpi-green" if confidence >= 70 else ("kpi-orange" if confidence >= 40 else "kpi-critical")
     bar = (
         f'<div class="conf-bar-track">'
         f'<div class="conf-bar-fill" style="width:{confidence}%"></div>'
         f'</div>'
     )
+    attrs = _nav_attrs(nav_tab) if nav_tab else 'class="kpi-card"'
     return f"""
-<div class="kpi-card">
+<div {attrs}>
   <div class="kpi-label">Confidence</div>
   <div class="kpi-val {color}">{confidence}%</div>
   {bar}
 </div>"""
 
 
-def risk_score_card(score: int) -> str:
+def risk_score_card(score: int, nav_tab: str = "") -> str:
     if score >= 80:
         color, label = "kpi-critical", "CRITICAL"
     elif score >= 60:
@@ -133,8 +146,9 @@ def risk_score_card(score: int) -> str:
         color, label = "kpi-orange", "MEDIUM"
     else:
         color, label = "kpi-low", "LOW"
+    attrs = _nav_attrs(nav_tab) if nav_tab else 'class="kpi-card"'
     return f"""
-<div class="kpi-card">
+<div {attrs}>
   <div class="kpi-label">Risk Score</div>
   <div class="kpi-val {color}">{score}</div>
   <div class="kpi-sub">/ 100 &nbsp;·&nbsp; {label}</div>

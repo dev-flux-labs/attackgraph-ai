@@ -311,14 +311,14 @@ with ws_col:
         sev_cls = f"kpi-{sev.lower()}"
         kpi_html = (
             '<div class="kpi-row">'
-            + ui.kpi_card("Severity",    sev,               sev_cls,  icon="🚨")
+            + ui.kpi_card("Severity",   sev,               sev_cls,  icon="🚨")
             + ui.risk_score_card(risk)
             + ui.confidence_card(conf)
-            + ui.kpi_card("Evidence",    str(len(results)), "kpi-blue", sub="chunks retrieved", icon="📋")
-            + ui.kpi_card("IOCs Found",  str(ioc_total),    "kpi-orange" if ioc_total else "kpi-low", icon="🔎")
-            + ui.kpi_card("MITRE",       str(len(mitre_techniques)), "kpi-blue", sub="techniques", icon="🛡")
-            + ui.kpi_card("Hosts",       str(len(iocs.get("IPs", []) + iocs.get("Domains", []))), icon="🖥")
-            + ui.kpi_card("Timeline",    str(len([e for e in timeline if e.get("event")])), sub="events", icon="🕐")
+            + ui.kpi_card("Evidence",   str(len(results)), "kpi-blue",   sub="chunks retrieved", icon="📋", nav_tab="Evidence")
+            + ui.kpi_card("IOCs Found", str(ioc_total),    "kpi-orange" if ioc_total else "kpi-low", icon="🔎", nav_tab="Evidence")
+            + ui.kpi_card("MITRE",      str(len(mitre_techniques)), "kpi-blue", sub="techniques", icon="🛡", nav_tab="MITRE")
+            + ui.kpi_card("Hosts",      str(len(iocs.get("IPs", []) + iocs.get("Domains", []))), icon="🖥", nav_tab="Evidence")
+            + ui.kpi_card("Timeline",   str(len([e for e in timeline if e.get("event")])), sub="events", icon="🕐", nav_tab="Timeline")
             + '</div>'
         )
         st.markdown(kpi_html, unsafe_allow_html=True)
