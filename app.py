@@ -5,6 +5,9 @@ Run with: streamlit run app.py
 """
 
 import re
+import subprocess
+import time
+import urllib.request
 import pandas as pd
 from datetime import datetime
 
@@ -37,6 +40,31 @@ st.set_page_config(
 inject_css()
 
 # ── One-time process initialisation ───────────────────────────────────────
+
+@st.cache_resource
+def _start_ollama() -> str:
+    """Start ollama serve if it isn't already running. Returns a status string."""
+    try:
+        urllib.request.urlopen("http://localhost:11434", timeout=2)
+        return "already running"
+    except Exception:
+        pass  # not up yet — start it
+
+    subprocess.Popen(
+        ["ollama", "serve"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    # Wait up to 8 s for the server to accept connections
+    for _ in range(16):
+        time.sleep(0.5)
+        try:
+            urllib.request.urlopen("http://localhost:11434", timeout=1)
+            return "started"
+        except Exception:
+            continue
+    return "timeout"
+
 @st.cache_resource
 def _init_templates():
     ensure_templates_ingested()
@@ -45,6 +73,7 @@ def _init_templates():
 def _load_graph() -> SecurityGraph:
     return SecurityGraph.load()
 
+_start_ollama()
 _init_templates()
 
 # ── Score helpers ──────────────────────────────────────────────────────────
