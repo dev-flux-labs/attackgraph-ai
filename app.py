@@ -344,12 +344,8 @@ with ws_col:
                 ui.section_header("📊", "Executive Summary"),
                 unsafe_allow_html=True,
             )
-            st.markdown(
-                f'<div class="soc-card" style="animation:none;">'
-                f'<p style="color:#C9D1D9;font-size:0.88rem;line-height:1.7;margin:0;">'
-                f'{report_obj.incident_summary}</p></div>',
-                unsafe_allow_html=True,
-            )
+            # Render LLM text via st.markdown (no unsafe_allow_html) to avoid XSS
+            st.markdown(report_obj.incident_summary)
         elif "report" in st.session_state:
             st.markdown(
                 ui.section_header("📊", "Full Report"),
@@ -514,10 +510,11 @@ with rp_col:
     sev_val   = st.session_state.get("severity", "—")
     st.markdown(
         ui.rp_row("CASE TITLE", title_val, muted=(title_val == "—"))
-        + ui.rp_row("SEVERITY", f'<span style="margin-right:0">{ui.severity_badge(sev_val)}</span>')
+        + ui.rp_row("SEVERITY", f'<span style="margin-right:0">{ui.severity_badge(sev_val)}</span>', raw_html=True)
         + ui.rp_row("STATUS",
             '<span class="pulse-dot" style="margin-right:6px;"></span>'
-            '<span style="color:#00D084;font-size:0.85rem;">Active Investigation</span>')
+            '<span style="color:#00D084;font-size:0.85rem;">Active Investigation</span>',
+            raw_html=True)
         + ui.rp_row("GENERATED",
             datetime.now().strftime("%Y-%m-%d %H:%M") if report_obj else "—",
             muted=(report_obj is None))

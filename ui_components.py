@@ -4,7 +4,13 @@ All functions return HTML strings consumed by st.markdown(unsafe_allow_html=True
 No Streamlit imports — pure string builders.
 """
 
+import html as _html
 from datetime import datetime
+
+
+def _e(value: str) -> str:
+    """HTML-escape a string before embedding in markup."""
+    return _html.escape(str(value))
 
 # ── Severity helpers ───────────────────────────────────────────────────────
 
@@ -26,7 +32,7 @@ def app_header(case_title: str = "", severity: str = "") -> str:
     badge = severity_badge(severity) if severity else ""
     title_part = (
         f'<span style="color:#8B949E;font-size:0.78rem;margin-right:6px;">▸</span>'
-        f'<span style="color:#F3F4F6;font-size:0.85rem;font-weight:500;">{case_title}</span> {badge}'
+        f'<span style="color:#F3F4F6;font-size:0.85rem;font-weight:500;">{_e(case_title)}</span> {badge}'
     ) if case_title else ""
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     return f"""
@@ -160,8 +166,8 @@ def evidence_card_header(i: int, chunk: dict) -> str:
     else:
         rel_cls, rel_text, card_cls = "ev-rel ev-rel-L", "LOW", "ev-card ev-low"
 
-    preview = chunk["text"][:140].replace("\n", " ").replace("<", "&lt;").replace(">", "&gt;")
-    source = chunk.get("source", "unknown")
+    preview = _e(chunk["text"][:140].replace("\n", " "))
+    source = _e(chunk.get("source", "unknown"))
     return f"""
 <div class="{card_cls}">
   <div class="ev-meta">
@@ -181,14 +187,20 @@ def mitre_tactic_header(tactic: str) -> str:
 
 
 def mitre_cards_grid(techniques: list[dict]) -> str:
-    cards = "".join(
-        f'<a class="mitre-card" href="{t["url"]}" target="_blank">'
-        f'<div class="mitre-id">{t["id"]}</div>'
-        f'<div class="mitre-name">{t["name"]}</div>'
-        f'</a>'
-        for t in techniques
-    )
-    return f'<div class="mitre-grid">{cards}</div>'
+    cards = []
+    for t in techniques:
+        url = t["url"]
+        # Only allow https://attack.mitre.org/ links to prevent URL injection
+        if not url.startswith("https://attack.mitre.org/"):
+            url = f"https://attack.mitre.org/techniques/{_e(t['id'])}/"
+        cards.append(
+            f'<a class="mitre-card" href="{_html.escape(url, quote=True)}"'
+            f' target="_blank" rel="noopener noreferrer">'
+            f'<div class="mitre-id">{_e(t["id"])}</div>'
+            f'<div class="mitre-name">{_e(t["name"])}</div>'
+            f'</a>'
+        )
+    return f'<div class="mitre-grid">{"".join(cards)}</div>'
 
 
 # ── IOC cards ──────────────────────────────────────────────────────────────
@@ -202,7 +214,7 @@ _IOC_ICONS = {
 def ioc_card(category: str, items: list[str]) -> str:
     icon = _IOC_ICONS.get(category, "•")
     if items:
-        rows = "".join(f'<div class="ioc-val">{item}</div>' for item in items[:15])
+        rows = "".join(f'<div class="ioc-val">{_e(item)}</div>' for item in items[:15])
         overflow = (
             f'<div class="ioc-empty">+ {len(items)-15} more…</div>'
             if len(items) > 15 else ""
@@ -213,7 +225,7 @@ def ioc_card(category: str, items: list[str]) -> str:
     return f"""
 <div class="ioc-card">
   <div class="ioc-hdr">
-    <span class="ioc-lbl">{icon} {category}</span>
+    <span class="ioc-lbl">{icon} {_e(category)}</span>
     <span class="ioc-cnt">{len(items)}</span>
   </div>
   {rows}{overflow}
@@ -228,7 +240,7 @@ def recommendation_list(steps: list[str]) -> str:
     items = "".join(
         f'<div class="rec-item">'
         f'<div class="rec-num">{i}</div>'
-        f'<div class="rec-text">{step}</div>'
+        f'<div class="rec-text">{_e(step)}</div>'
         f'</div>'
         for i, step in enumerate(steps, 1)
     )
@@ -251,12 +263,17 @@ def right_panel_footer() -> str:
     return "</div></div>"
 
 
-def rp_row(label: str, value: str, muted: bool = False) -> str:
+def rp_row(label: str, value: str, muted: bool = False, raw_html: bool = False) -> str:
+    """
+    raw_html=True: caller guarantees value is safe (e.g. severity_badge output).
+    raw_html=False (default): value is escaped before rendering.
+    """
     val_cls = "rp-val muted" if muted else "rp-val"
+    safe_value = value if raw_html else _e(value)
     return f"""
 <div class="rp-section">
-  <div class="rp-lbl">{label}</div>
-  <div class="{val_cls}">{value}</div>
+  <div class="rp-lbl">{_e(label)}</div>
+  <div class="{val_cls}">{safe_value}</div>
 </div>"""
 
 
