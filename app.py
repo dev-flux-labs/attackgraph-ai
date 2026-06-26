@@ -232,6 +232,9 @@ if investigate:
                 combined = query + " " + " ".join(c["text"] for c in results)
                 st.session_state["iocs"] = extract_iocs(combined)
 
+                # Extract MITRE techniques from evidence immediately (before report)
+                st.session_state["mitre_techniques"] = techniques_from_texts(combined)
+
                 # Auto-extract timestamps from query for timeline seed
                 ts_pat = re.compile(
                     r"\b(?:\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2})?Z?|"
@@ -245,7 +248,7 @@ if investigate:
                 ]
                 st.session_state["timeline"] = st.session_state.get("timeline", []) + auto
 
-                for k in ("report", "report_obj", "mitre_techniques"):
+                for k in ("report", "report_obj"):
                     st.session_state.pop(k, None)
 
             except Exception as e:

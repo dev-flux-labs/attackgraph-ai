@@ -35,7 +35,7 @@ _CSS = """
     font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 .block-container {
-    padding: 1.5rem 2rem 3rem 2rem;
+    padding: 0.5rem 2rem 3rem 2rem;
     max-width: 100% !important;
 }
 
@@ -49,11 +49,10 @@ _CSS = """
 #MainMenu, footer, [data-testid="stToolbar"] { visibility: hidden; height: 0; }
 [data-testid="stDecoration"] { display: none; }
 
-/* ── HEADER ──────────────────────────────────────────────────────────────── */
+/* ── HEADER — collapsed so custom app header sits flush at top ───────────── */
 [data-testid="stHeader"] {
-    background: #161B22;
-    border-bottom: 1px solid #30363D;
-    height: 48px;
+    height: 0 !important;
+    overflow: hidden !important;
 }
 
 /* ── SIDEBAR ─────────────────────────────────────────────────────────────── */
