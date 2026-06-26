@@ -91,9 +91,27 @@ def enrich(technique_ids: set[str]) -> list[dict]:
     return results
 
 
+def _match_by_name(combined: str) -> set[str]:
+    """
+    Secondary pass: find technique IDs by matching their names in the text.
+    Skips single-word names shorter than 6 chars to avoid over-matching.
+    """
+    lower = combined.lower()
+    found: set[str] = set()
+    for tid, (name, _, _) in TECHNIQUES.items():
+        name_lower = name.lower()
+        # Only match multi-word names or names long enough to be unambiguous
+        if len(name_lower) >= 6 and name_lower in lower:
+            found.add(tid)
+    return found
+
+
 def techniques_from_texts(*texts: str) -> list[dict]:
     """Convenience wrapper: extract and enrich IDs from one or more text strings."""
+    combined = " ".join(texts)
     all_ids: set[str] = set()
-    for text in texts:
-        all_ids |= extract_technique_ids(text)
+    # Primary: explicit T#### IDs written by the LLM
+    all_ids |= extract_technique_ids(combined)
+    # Secondary: name-based matching for when the LLM omits explicit IDs
+    all_ids |= _match_by_name(combined)
     return enrich(all_ids)
