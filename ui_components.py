@@ -234,6 +234,16 @@ def ioc_card(category: str, items: list[str]) -> str:
 
 # ── Recommendation steps ───────────────────────────────────────────────────
 
+def rec_technique_item(technique: str) -> str:
+    """Single technique row with the arrow marker — escapes LLM-derived text."""
+    return (
+        f'<div class="rec-item">'
+        f'<div class="rec-num">→</div>'
+        f'<div class="rec-text">{_e(technique)}</div>'
+        f'</div>'
+    )
+
+
 def recommendation_list(steps: list[str]) -> str:
     if not steps:
         return '<p style="color:#8B949E;font-size:0.85rem;font-style:italic;">No recommendations yet — generate a report first.</p>'

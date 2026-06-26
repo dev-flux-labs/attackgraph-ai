@@ -420,11 +420,9 @@ with ws_col:
                 unsafe_allow_html=True,
             )
             for t in report_obj.attack_techniques:
+                # Use ui helper — _e() escapes LLM-derived text before HTML insertion
                 st.markdown(
-                    f'<div class="rec-item">'
-                    f'<div class="rec-num">→</div>'
-                    f'<div class="rec-text">{t}</div>'
-                    f'</div>',
+                    ui.rec_technique_item(t),
                     unsafe_allow_html=True,
                 )
 
