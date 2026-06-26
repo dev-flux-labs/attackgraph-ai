@@ -29,6 +29,7 @@ from export_pdf import to_pdf, filename as pdf_filename
 # ── UI layer ───────────────────────────────────────────────────────────────
 from ui_styles import inject_css
 import ui_components as ui
+from graph_viz import build_pyvis_html, legend_html
 
 # ── Page config ────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -493,24 +494,32 @@ with ws_col:
 
     # ── TAB 6: GRAPH ──────────────────────────────────────────────────────
     with tab_graph:
-        st.markdown(ui.graph_placeholder_header(), unsafe_allow_html=True)
-
         g = _load_graph()
         n_nodes = g.G.number_of_nodes()
         n_edges = g.G.number_of_edges()
 
-        if n_nodes > 0:
+        st.markdown(
+            ui.section_header("🕸", "Security Memory Graph",
+                              f"{n_nodes} entities · {n_edges} relationships"),
+            unsafe_allow_html=True,
+        )
+
+        if n_nodes == 0:
+            st.info("No graph data yet — run an investigation and generate a report to populate the memory graph.")
+        else:
+            # ── Interactive pyvis canvas ──────────────────────────────────
+            st.markdown(legend_html(), unsafe_allow_html=True)
+            graph_html = build_pyvis_html(g.G, height=560)
+            st.components.v1.html(graph_html, height=575, scrolling=False)
+
+            # ── Entity type summary metrics ───────────────────────────────
             st.markdown("---")
-            st.markdown(
-                ui.section_header("🕸", "Memory Graph Data",
-                                  f"{n_nodes} entities · {n_edges} relationships"),
-                unsafe_allow_html=True,
-            )
             summary = g.summary()
             m_cols = st.columns(len(ENTITY_TYPES))
             for col, etype in zip(m_cols, ENTITY_TYPES):
                 col.metric(etype.capitalize(), summary.get(etype, 0))
 
+            # ── Entity / relationship tables ──────────────────────────────
             st.markdown("---")
             g_col_a, g_col_b = st.columns(2)
             with g_col_a:
