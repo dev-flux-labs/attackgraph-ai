@@ -38,18 +38,24 @@ def app_header(case_title: str = "", severity: str = "") -> str:
     return f"""
 <div class="soc-header">
   <div class="soc-header-left">
-    <span class="soc-header-logo">🔍</span>
+    <span class="soc-header-logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V6L12 2z"
+              fill="none" stroke="#00D084" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M9 12l2 2 4-4" stroke="#00D084" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
     <div>
       <p class="soc-header-title">AttackGraph AI</p>
-      <p class="soc-header-sub">Security Operations Center — Investigation Platform</p>
+      <p class="soc-header-sub">Security Operations Center // Threat Investigation Platform</p>
     </div>
-    {f'<div style="display:flex;align-items:center;gap:6px;margin-left:6px;">{title_part}</div>' if title_part else ''}
+    {f'<div style="display:flex;align-items:center;gap:6px;margin-left:18px;padding-left:18px;border-left:1px solid #30363D;">{title_part}</div>' if title_part else ''}
   </div>
   <div class="soc-header-right">
     <div class="soc-status-live">
       <span class="pulse-dot"></span> LIVE
     </div>
-    <div style="color:#8B949E;font-size:0.68rem;font-family:'Courier New',monospace;">{now}</div>
+    <div style="color:#30363D;font-size:0.72rem;font-family:'Courier New',monospace;letter-spacing:0.05em;">{now}</div>
   </div>
 </div>"""
 

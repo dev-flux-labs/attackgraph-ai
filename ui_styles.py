@@ -280,47 +280,78 @@ hr { border-color: #30363D !important; margin: 12px 0 !important; }
 .fade-in { animation: fadeInUp 0.28s ease forwards; }
 
 /* ── APP HEADER ──────────────────────────────────────────────────────────── */
+/* ── APP HEADER — cyber terminal strip ───────────────────────────────────── */
 .soc-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 0 16px 0;
-    border-bottom: 1px solid #30363D;
-    margin-bottom: 18px;
-    animation: fadeInUp 0.3s ease;
+    padding: 0 20px;
+    height: 52px;
+    background: #0D1117;
+    border-bottom: 1px solid #00D084;
+    box-shadow: 0 1px 12px rgba(0,208,132,0.12);
+    margin: -0.5rem -2rem 20px -2rem;   /* bleed to column edges */
+    position: relative;
+    overflow: hidden;
 }
-.soc-header-left { display: flex; align-items: center; gap: 12px; }
-.soc-header-logo { font-size: 1.3rem; }
+/* Scanline accent */
+.soc-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,208,132,0.02) 3px,
+        rgba(0,208,132,0.02) 4px
+    );
+    pointer-events: none;
+}
+.soc-header-left { display: flex; align-items: center; gap: 14px; position: relative; }
+.soc-header-logo {
+    font-size: 1.4rem;
+    filter: drop-shadow(0 0 6px rgba(0,208,132,0.6));
+}
 .soc-header-title {
-    color: #F3F4F6;
-    font-size: 1.05rem;
+    color: #00D084;
+    font-size: 0.95rem;
     font-weight: 700;
     margin: 0;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 8px rgba(0,208,132,0.5);
 }
 .soc-header-sub {
-    color: #8B949E;
-    font-size: 0.72rem;
-    margin: 1px 0 0 0;
+    color: #484F58;
+    font-size: 0.62rem;
+    margin: 2px 0 0 0;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: 'Courier New', monospace;
 }
-.soc-header-right { display: flex; align-items: center; gap: 12px; }
+.soc-header-right { display: flex; align-items: center; gap: 16px; position: relative; }
 .soc-status-live {
     display: flex;
     align-items: center;
     gap: 6px;
-    color: #8B949E;
-    font-size: 0.72rem;
-    font-weight: 500;
+    color: #00D084;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    font-family: 'Courier New', monospace;
 }
 .pulse-dot {
     width: 7px; height: 7px;
     border-radius: 50%;
     background: #00D084;
     display: inline-block;
+    box-shadow: 0 0 6px #00D084;
     animation: pulseGlow 1.8s ease infinite;
 }
-.pulse-dot.red    { background: #FF4D4F; }
-.pulse-dot.orange { background: #FFB000; }
+.pulse-dot.red    { background: #FF4D4F; box-shadow: 0 0 6px #FF4D4F; }
+.pulse-dot.orange { background: #FFB000; box-shadow: 0 0 6px #FFB000; }
 
 /* ── SIDEBAR LOGO ────────────────────────────────────────────────────────── */
 .sb-logo {
