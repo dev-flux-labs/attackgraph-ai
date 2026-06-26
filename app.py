@@ -9,6 +9,7 @@ from datetime import datetime
 import streamlit as st
 
 from file_parser import parse_file
+from graph import SecurityGraph, ENTITY_TYPES
 from ioc_extract import extract as extract_iocs
 from ingest import chunk_text
 from llm import generate_report
@@ -26,11 +27,15 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Load report templates into ChromaDB once per Streamlit process.
-# st.cache_resource ensures this runs only on the first load, not every rerun.
+# Both _init_templates and _load_graph use st.cache_resource so they run
+# only once per Streamlit process regardless of how many reruns occur.
 @st.cache_resource
 def _init_templates():
     ensure_templates_ingested()
+
+@st.cache_resource
+def _load_graph() -> SecurityGraph:
+    return SecurityGraph.load()
 
 _init_templates()
 
@@ -230,11 +235,12 @@ if "results" in st.session_state and st.session_state["results"]:
 
     st.divider()
 
-    tab_evidence, tab_timeline, tab_iocs, tab_mitre, tab_report = st.tabs([
+    tab_evidence, tab_timeline, tab_iocs, tab_mitre, tab_graph, tab_report = st.tabs([
         "📋 Evidence",
         "🕐 Timeline",
         "🔎 IOCs",
         "🛡 MITRE ATT&CK",
+        "🕸 Memory Graph",
         "📄 Report",
     ])
 
@@ -371,7 +377,51 @@ if "results" in st.session_state and st.session_state["results"]:
                     for tech in techs[3:]:
                         st.markdown(f"- [{tech['id']}]({tech['url']}) — *{tech['name']}*")
 
-    # ── Tab 5: Report ────────────────────────────────────────────────────────
+    # ── Tab 5: Memory Graph ──────────────────────────────────────────────────
+    with tab_graph:
+        import pandas as _pd
+
+        g = _load_graph()
+        n_nodes = g.G.number_of_nodes()
+        n_edges = g.G.number_of_edges()
+
+        st.subheader("Security Memory Graph")
+        st.caption(
+            f"Accumulated across all investigations — "
+            f"{n_nodes} entit{'y' if n_nodes == 1 else 'ies'}, "
+            f"{n_edges} relationship{'s' if n_edges != 1 else ''}"
+        )
+
+        if n_nodes == 0:
+            st.info("Generate a report to populate the memory graph.")
+        else:
+            # --- Entity type counts ---
+            summary = g.summary()
+            metric_cols = st.columns(len(ENTITY_TYPES))
+            for col, etype in zip(metric_cols, ENTITY_TYPES):
+                col.metric(etype.capitalize(), summary.get(etype, 0))
+
+            st.divider()
+
+            col_nodes, col_edges = st.columns(2)
+
+            with col_nodes:
+                st.markdown("**Entities**")
+                nodes_df = _pd.DataFrame(g.all_nodes())
+                st.dataframe(nodes_df, use_container_width=True, hide_index=True)
+
+            with col_edges:
+                st.markdown("**Relationships**")
+                edges_df = _pd.DataFrame(g.all_edges())
+                st.dataframe(edges_df, use_container_width=True, hide_index=True)
+
+        st.divider()
+        if st.button("Clear memory graph", help="Permanently removes all accumulated graph data."):
+            g.G.clear()
+            g.save()
+            st.rerun()
+
+    # ── Tab 6: Report ────────────────────────────────────────────────────────
     with tab_report:
         st.subheader("Investigation Report")
 
@@ -406,6 +456,19 @@ if "results" in st.session_state and st.session_state["results"]:
                     mitre_techniques=techniques,
                 )
                 st.session_state["report_obj"] = report_obj
+
+                # Populate persistent memory graph from this investigation
+                mem_graph = _load_graph()
+                new_edges = mem_graph.populate_from_investigation(
+                    case_title=st.session_state.get("case_title", "Unnamed Incident"),
+                    iocs=st.session_state.get("iocs", {}),
+                    mitre_techniques=techniques,
+                    query=last_query,
+                    report_text=full_report_text,
+                )
+                mem_graph.save()
+                if new_edges > 0:
+                    st.caption(f"Memory graph updated: +{new_edges} relationship(s)")
 
             except ConnectionError as e:
                 st.error(str(e))
