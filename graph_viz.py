@@ -5,6 +5,7 @@ pyvis HTML network, styled to match the SOC dark theme.
 Returns a self-contained HTML string consumed by st.components.v1.html().
 """
 
+import html as _html
 import tempfile
 import os
 import networkx as nx
@@ -81,10 +82,13 @@ def build_pyvis_html(G: nx.DiGraph, height: int = 560) -> str:
         color  = _TYPE_COLORS.get(etype, "#8B949E")
         shape  = _TYPE_SHAPES.get(etype, "dot")
         size   = _TYPE_SIZES.get(etype, 18)
-        title  = f"<b>{etype.upper()}</b><br>{label}"
+        # Escape graph-derived values before embedding in HTML tooltip
+        safe_etype = _html.escape(str(etype).upper())
+        safe_label = _html.escape(str(label))
+        title  = f"<b>{safe_etype}</b><br>{safe_label}"
 
         # Truncate long labels so the graph stays readable
-        display_label = label if len(label) <= 22 else label[:20] + "…"
+        display_label = _html.escape(label if len(label) <= 22 else label[:20] + "…")
 
         net.add_node(
             node_id,
@@ -106,11 +110,11 @@ def build_pyvis_html(G: nx.DiGraph, height: int = 560) -> str:
     # Edges
     for u, v, attrs in G.edges(data=True):
         rel = attrs.get("rel", "")
-        # Shorten relationship label for display
-        short = rel.replace("_", " ")
+        # Escape graph-derived values; replace underscores for display
+        short = _html.escape(rel.replace("_", " "))
         net.add_edge(
             u, v,
-            title=rel,
+            title=_html.escape(rel),
             label=short,
             color={"color": "#484F58", "highlight": "#58A6FF", "hover": "#58A6FF"},
             width=1.5,
